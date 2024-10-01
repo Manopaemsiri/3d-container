@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, useGLTF, CubeCamera, Environment } from '@react-three/drei';
 import './App.css';
 
 function Box({ position, size = [1, 1, 1], color = 'lightblue', setOrbitEnabled }) {
@@ -57,6 +57,11 @@ function StackingBoxes({ setOrbitEnabled }) {
       <Box position={[-.75, 1.5, -1.5]} size={[2, 1, 3]} color="#e4e1f2" setOrbitEnabled={setOrbitEnabled}/>
     </>
   );
+}
+
+function Model({ path, position, scale }) {
+  const { scene } = useGLTF(path);
+  return <primitive object={scene} position={position} scale={scale} />;
 }
 
 function Scene() {
@@ -128,17 +133,36 @@ function Scene() {
 
       <Canvas style={{ height: '100vh', width: '100%' }}>
 
-        <ambientLight intensity={.9} />
+      <directionalLight
+          intensity={1} 
+          position={[-10, 10, 5]} // Light from the left side
+          castShadow
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+          shadow-camera-far={50}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
+        />
+
         <pointLight position={[10, 10, 10]} />
 
         <gridHelper args={[10, 10]} position={[-2.75, 1, 2]} />
 
-        <StackingBoxes setOrbitEnabled={setOrbitEnabled} />
-
-        {boxes.map((box, index) => (
-          <Box key={index} position={box.position} size={box.size} color={box.color} setOrbitEnabled={setOrbitEnabled} />
-        ))}
-
+        <CubeCamera resolution={256} frames={Infinity}>
+          {(texture) => (
+            <>
+              <Environment map={texture} background={false} />
+              <StackingBoxes setOrbitEnabled={setOrbitEnabled} />
+              {boxes.map((box, index) => (
+                <Box key={index} position={box.position} size={box.size} color={box.color} setOrbitEnabled={setOrbitEnabled} />
+              ))}
+              <Model path="./model/01.glb" color='lightblue' position={[-5.75, .875, -1]} scale={[1.75, 1.75, 1.75]} />
+            </>
+          )}
+          </CubeCamera>
+              
         <OrbitControls enabled={orbitEnabled}/>
       </Canvas>
     </>
