@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Html } from '@react-three/drei';
+import { OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import './App.css';
 
@@ -15,10 +15,13 @@ function Box({ position, size = [1, 1, 1],  color = 'lightblue', isSelected, onC
     new THREE.MeshStandardMaterial({ map: backTexture }), // Back side
   ];
 
-  console.log(position)
   return (
     <mesh 
-      position={position} 
+      position={[
+        position[0] + size[0] / 2,
+        position[1], 
+        position[2]
+    ]} 
       onClick={onClick}
       scale={isSelected ? [1, 1, 1] : [1, 1, 1]}
     >
@@ -30,9 +33,12 @@ function Box({ position, size = [1, 1, 1],  color = 'lightblue', isSelected, onC
   );
 }
 
-function TruckModel({boxes, addBox, truckIndex}) {
+function TruckModel({position, truckIndex} ) {
+
+  const isSecondTruck = truckIndex === 1;
+ 
   return (
-    <group position={[0, 1.35, 0]}>
+    <group position={position}>
       <mesh position={[0, 0.5, 0]} receiveShadow>
         <boxGeometry args={[5.5, 1, 2]} />
         <meshStandardMaterial color="gray" />
@@ -41,15 +47,7 @@ function TruckModel({boxes, addBox, truckIndex}) {
         <boxGeometry args={[3, 0.2, 2]} />
         <meshStandardMaterial color="gray" />
       </mesh>
-      <mesh position={[-1.5, 0, 1]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.4, 0.4, 0.2, 32]} />
-        <meshStandardMaterial color="black" />
-      </mesh>
       <mesh position={[1.5, 0, 1]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.4, 0.4, 0.2, 32]} />
-        <meshStandardMaterial color="black" />
-      </mesh>
-      <mesh position={[-1.5, 0, -1]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.4, 0.4, 0.2, 32]} />
         <meshStandardMaterial color="black" />
       </mesh>
@@ -57,8 +55,34 @@ function TruckModel({boxes, addBox, truckIndex}) {
         <cylinderGeometry args={[0.4, 0.4, 0.2, 32]} />
         <meshStandardMaterial color="black" />
       </mesh>
+      {isSecondTruck && (
+        <>
+          <mesh position={[.5, 0, 1]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.4, 0.4, 0.2, 32]} />
+            <meshStandardMaterial color="black" />
+          </mesh>
+          <mesh position={[.5, 0, -1]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.4, 0.4, 0.2, 32]} />
+            <meshStandardMaterial color="black" />
+          </mesh>
+        </>
+      )}
     </group>
   );
+}
+
+
+function GLTFModel({ url }) {
+  const { scene } = useGLTF(url); 
+
+  scene.traverse((child) => {
+    if (child.isMesh) {
+      child.castShadow = true;  
+      child.receiveShadow = true;  
+    }
+  });
+
+  return <primitive object={scene} position={[-4.7, 1, -4.45]} scale={[.5, .5, .5]} rotation={[0, 3 * Math.PI / 2, 0]}/>;
 }
 
 function Scene() {
@@ -66,15 +90,15 @@ function Scene() {
   const [selectedBoxIndex, setSelectedBoxIndex] = useState(null);
   const [boxes, setBoxes] = useState([]);
   const [formData, setFormData] = useState({
-    name: '', x: 0, y: 3.35, z: 0, width: 6,
+    name: '', x: -2.75, y: 3.35, z: 0, width: 5.5,
     height: 2, length: 2, numberOfBoxes: 1,    
   });
-  const [truckAdded, setTruckAdded] = useState(false);
+  const [trucks, setTrucks] = useState([]);
 
 
   // Load the brown box texture
   const topTexture = useLoader(THREE.TextureLoader, './texture/container.png');
-  const leftTexture = useLoader(THREE.TextureLoader, './texture/container.png');
+  const leftTexture = useLoader(THREE.TextureLoader, './texture/container-closed.png');
   const rightTexture = useLoader(THREE.TextureLoader, './texture/container.png');
   const texture = useLoader(THREE.TextureLoader, './texture/container.png');
   const frontTexture = useLoader(THREE.TextureLoader, './texture/container.png');
@@ -92,11 +116,16 @@ function Scene() {
 
     const numberOfBoxes = parseInt(formData.numberOfBoxes, 10);
 
+    if (selectedBoxIndex === null && boxes.length >= 2) {
+      alert('You cannot add more than 2 boxes.');
+      return;
+    }
+
     const newBox1 = {
       name: formData.name,
       position: [
-        -Math.abs(parseFloat(formData.x)),
-        parseFloat(formData.y) , 
+        parseFloat(formData.x),
+        parseFloat(formData.y), 
         parseFloat(formData.z)
       ],
       size: [
@@ -106,39 +135,67 @@ function Scene() {
       ],
     };
 
-    if (!truckAdded) {
-      setTruckAdded(true);  
-    }
-
     let updatedBoxes = [...boxes];
 
     if (selectedBoxIndex === null) {
-      updatedBoxes.push(newBox1);
+
+      if(updatedBoxes.length < 1){
+        updatedBoxes.push(newBox1);
+      }else{
+        const newBox2Position = [
+          updatedBoxes[0].position[0] + updatedBoxes[0].size[0] + 0.1,
+          updatedBoxes[0].position[1],
+          updatedBoxes[0].position[2]
+        ];
+
+        const newBox2 = {
+          ...newBox1,
+          name: `Box 2`,
+          position: newBox2Position,
+        };
+
+        updatedBoxes.push(newBox2); 
+      }
+
       if (numberOfBoxes === 2) {
         const newBox2 = {
           ...newBox1,
           name: `Box 2`,
-          position: [newBox1.position[0] + newBox1.size[0], newBox1.position[1], newBox1.position[2]]
+          position: [
+            newBox1.position[0] + newBox1.size[0] + 0.1,
+            newBox1.position[1],
+            newBox1.position[2]
+          ]
         };
         updatedBoxes.push(newBox2);
       }
     } else {
       updatedBoxes[selectedBoxIndex] = newBox1;
+
+      if (selectedBoxIndex === 0 && updatedBoxes.length > 1) {
+        const updatedBox2 = {
+          ...updatedBoxes[1], 
+          position: [
+            newBox1.position[0] + newBox1.size[0] + 0.1, 
+            newBox1.position[1],
+            newBox1.position[2]
+          ]
+        };
+        updatedBoxes[1] = updatedBox2; 
+      } 
     }
    
-    let _anchorX = 0;
-    updatedBoxes = updatedBoxes.map(d => {
-      let _pos = d.position;
-      // _pos[0] = _anchorX;
-      // _anchorX += d.size[0] + 0.1;
-      return { ...d, position: _pos };
-    });
+    const numberOfTrucks = Math.ceil(updatedBoxes.length / 1);  
+    if (numberOfTrucks > trucks.length) {
+      setTrucks([...trucks, ...Array(numberOfTrucks - trucks.length).fill(null)]);
+    }
+  
     setBoxes(updatedBoxes);
     setSelectedBoxIndex(null);
 
     setFormData({
-      name: '', x: 0, y: 3.35, z: 0,
-      width: 6, height: 2, length: 2, numberOfBoxes: 1,  
+      name: '', x: -2.75, y: 3.35, z: 0,
+      width: 5.5, height: 2, length: 2, numberOfBoxes: 1,  
     });
   };
 
@@ -205,11 +262,15 @@ function Scene() {
           castShadow
         />
 
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={.8} />
 
         <pointLight position={[10, 10, 10]} />
 
-        {truckAdded && <TruckModel />}
+        <GLTFModel url="/model/truck-04.glb" />
+
+        {trucks.map((_, index) => (
+          <TruckModel key={index} position={[index * 5.6, 1.35, 0]} truckIndex={index} />
+        ))}
   
         {boxes.map((box, index) => {
           return (

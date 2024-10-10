@@ -17,7 +17,11 @@ function Box({ position, size = [1, 1, 1], color = 'lightblue', isSelected, onCl
 
   return (
     <mesh 
-      position={position} 
+      position={[
+        position[0] + size[0] / 2,
+        position[1], 
+        position[2]
+      ]} 
       onClick={onClick}
       scale={isSelected ? [1.1, 1.1, 1.1] : [1, 1, 1]}
     >
@@ -83,8 +87,8 @@ function Scene() {
   const [selectedBoxIndex, setSelectedBoxIndex] = useState(null);
   const [boxes, setBoxes] = useState([]);
   const [formData, setFormData] = useState({
-    name: '', x: 0, y: 1.5, z: 0, width: 1,
-    height: 1, length: 1,
+    name: '', x: 0, y: 2, z: 0, width: 2,
+    height: 2, length: 2,
   });
 
 
@@ -130,8 +134,8 @@ function Scene() {
     }
   
     setFormData({
-      name: '', x: 0, y: 1.5, z: 0,
-      width: 1, height: 1, length: 1,
+      name: '', x: 0, y: 2, z: 0,
+      width:2, height:2, length:2,
     });
   };
 
@@ -197,12 +201,14 @@ function Scene() {
 
         <pointLight position={[10, 10, 10]} />
 
+
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[3, 1.5, 0]} receiveShadow>
           <planeGeometry args={[100, 100]} />
           <meshStandardMaterial color="white" transparent opacity={0} />
         </mesh>
   
-        <StackingBoxes setOrbitEnabled={setOrbitEnabled} />
+        {/* <StackingBoxes setOrbitEnabled={setOrbitEnabled} /> */}
+
         {boxes.map((box, index) => (
           <Box 
             key={index} 
