@@ -1,0 +1,18 @@
+*{margin:0; padding:0; box-sizing:border-box;}
+canvas{position: relative; pointer-events:none;}
+.form{
+  position:absolute; top:30%; left:15%; z-index:2; padding:1.5rem 2rem;
+  transform:translate(-50%, -50%); background:#eeeeee; border-radius:.375rem;
+}
+.form h2{margin-bottom:.75rem;}
+.form label{display:inline-block; min-width: 4rem;}
+.form input{width:calc(100% - 4rem); padding:.25rem; border:0;}
+.form button{padding:.25rem; margin-top:1rem;}
+.day-mode{
+  position:absolute; top:70%; left:15%; z-index:2; padding:1.5rem 2rem;
+  transform:translate(-50%, -50%); background:#eeeeee; border-radius:.375rem;
+}
+.btn-lamp{
+  position:absolute; top:70%; left:0%; z-index:2; padding:1.5rem 2rem;
+  transform:translate(-50%, -50%);
+}

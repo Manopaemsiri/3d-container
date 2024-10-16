@@ -1,0 +1,2 @@
+*.glb filter=lfs diff=lfs merge=lfs -text
+public/model/truck-07.glb filter=lfs diff=lfs merge=lfs -text
