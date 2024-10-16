@@ -75,7 +75,7 @@ function Box({
 
 
 /* Truck Header Model */
-function GLTFModel({ url, boxLenght }) {
+function GLTFModel({ url, box }) {
   const { scene } = useGLTF(url); 
 
   scene.traverse((child) => {
@@ -85,12 +85,24 @@ function GLTFModel({ url, boxLenght }) {
     }
   });
 
-  const scale = [0.5, 0.5, 0.5];
+  const baseLength = 5; 
+  const scaleFactor = box.size[2] / baseLength;
+  const scale = [scaleFactor, 0.5, 0.5];
+
+  const xPosition = box.position[0];
+
+  const zAnchorOffset = (box.size[2] + baseLength) / 2; 
+  const zPosition = box.position[2] - zAnchorOffset;
+
+  console.log("Box Z Position: ", box.position[2]);
+  console.log("GLTFModel Z Position: ", zPosition);
+  console.log("GLTFModel x Position: ", xPosition);
+  console.log("Length: ", box.size[2]);
 
   return (
     <primitive 
         object={scene} 
-        position={[-4.7, 1, -4.45]} 
+        position={[xPosition - 2, 1, zPosition - 0.675]} 
         scale={scale} 
         rotation={[0, 3 * Math.PI / 2, 0]}
     />
@@ -142,7 +154,7 @@ function Scene() {
   const [boxes, setBoxes] = useState([]);
   const [formData, setFormData] = useState({
     name: '', x: -2.75, y: 2.95, z: 0, width: 8.45,
-    height: 2, length: 2, numberOfBoxes: 1,    
+    height: 2, length: 2.5, numberOfBoxes: 1,    
   });
   const trailerPart02Url = "/model/trailer-part-02.glb";
   const trailerPart03Url = "/model/trailer-part-03.glb";
@@ -238,7 +250,7 @@ function Scene() {
 
     setFormData({
       name: '', x: -2.75, y: 2.95, z: 0,
-      width: 8.45, height: 2, length: 2, numberOfBoxes: 1,  
+      width: 8.45, height: 2, length: 2.5, numberOfBoxes: 1,  
     });
   };
 
@@ -344,7 +356,7 @@ function Scene() {
                 length={box.size[0]} 
               />
                 {/* Truck Header */}
-                <GLTFModel url="/model/truck-04.glb" />
+                <GLTFModel url="/model/truck-04.glb" box={box} />
                 {/* Trailer */}
                 <TrailerPart02Model url={trailerPart02Url} box={box} isFlipped={false} offsetZ={-0.5}/>
                 <TrailerPart02Model url={trailerPart03Url} box={box} isFlipped={true} offsetZ={-0.5} />
