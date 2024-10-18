@@ -89,20 +89,10 @@ function GLTFModel({ url, box }) {
   const scaleFactor = box.size[2] / baseLength;
   const scale = [scaleFactor, 0.5, 0.5];
 
-  const xPosition = box.position[0];
-
-  const zAnchorOffset = (box.size[2] + baseLength) / 2; 
-  const zPosition = box.position[2] - zAnchorOffset;
-
-  console.log("Box Z Position: ", box.position[2]);
-  console.log("GLTFModel Z Position: ", zPosition);
-  console.log("GLTFModel x Position: ", xPosition);
-  console.log("Length: ", box.size[2]);
-
   return (
     <primitive 
         object={scene} 
-        position={[xPosition - 2, 1, zPosition - 0.675]} 
+        position={[-4.25, 2.25, 0]} 
         scale={scale} 
         rotation={[0, 3 * Math.PI / 2, 0]}
     />
@@ -356,7 +346,7 @@ function Scene() {
                 length={box.size[0]} 
               />
                 {/* Truck Header */}
-                <GLTFModel url="/model/truck-04.glb" box={box} />
+                <GLTFModel url="/model/truckHeader.glb" box={box} />
                 {/* Trailer */}
                 <TrailerPart02Model url={trailerPart02Url} box={box} isFlipped={false} offsetZ={-0.5}/>
                 <TrailerPart02Model url={trailerPart03Url} box={box} isFlipped={true} offsetZ={-0.5} />
